@@ -56,10 +56,12 @@ jobs:
         with:
           repository: "sihingbenni/spaceInvaders-source"
 
-      - name: Create tar from source code
-        id: create-source-tar
+      - name: Set file permissions
+        run: chmod -R 755 .
+
+      - name: Archive source
         run: |
-          ls -l
+          sleep 5
           tar -czf space_invaders_source.tar.gz .
           echo "source_artifact_name=space_invaders_source.tar.gz" >> $GITHUB_ENV
 
