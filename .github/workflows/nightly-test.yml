@@ -43,6 +43,9 @@ jobs:
           --output text)
           echo "Public DNS: $PUBLIC_DNS"
           echo "public_dns=$PUBLIC_DNS" >> $GITHUB_ENV
+    outputs:
+      public_dns: ${{ steps.get-public-dns.outputs.public_dns }}
+      instance_id: ${{ steps.get-instance-id.outputs.instance_id }}
 
 
   bundle-source-code:
@@ -122,4 +125,4 @@ jobs:
 
       - name: Delete Temp EC2
         run: |
-          aws ec2 terminate-instances --instance-ids ${{ needs.create-temp-ec2.steps.get-instance-id.outputs.instance_id }}
+          aws ec2 terminate-instances --instance-ids ${{ needs.create-temp-ec2.outputs.instance_id }}
