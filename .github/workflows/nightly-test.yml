@@ -61,7 +61,7 @@ jobs:
       - name: Archive source
         run: |
           sleep 5
-          tar --ignore-failed-read -czf space_invaders_source.tar.gz .
+          tar --ignore-failed-read --exclude='.git' --exclude='node_modules' -czf space_invaders_source.tar.gz .
           echo "source_artifact_name=space_invaders_source.tar.gz" >> $GITHUB_ENV
 
       - name: Upload source code artifact
@@ -105,6 +105,7 @@ jobs:
       - name: Upload Source Code to EC2
         run: |
           scp -i vockey.pem space_invaders_source.tar.gz ubuntu@${{ needs.create-temp-ec2.outputs.public_dns }}:~
+          ssh -i vockey.pem ubuntu@${{ needs.create-temp-ec2.outputs.public_dns }} "mkdir -p space_invaders_source"
           ssh -i vockey.pem ubuntu@${{ needs.create-temp-ec2.outputs.public_dns }} "tar -xzf space_invaders_source.tar.gz -C space_invaders_source"
           ssh -i vockey.pem ubuntu@${{ needs.create-temp-ec2.outputs.public_dns }} "ls -la"
           scp -i vockey.pem cli/run-smoke-test.sh ubuntu@${{ needs.create-temp-ec2.outputs.public_dns }}:~/space_invaders_source/
