@@ -55,7 +55,6 @@ jobs:
 
       - name: Create tar from source code
         id: create-source-tar
-        description: Creates a tar file from the source code
         run: |
           tar -czf space_invaders_source.tar.gz .
           echo "source_artifact_name=space_invaders_source.tar.gz" >> $GITHUB_ENV
