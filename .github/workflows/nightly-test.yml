@@ -104,13 +104,13 @@ jobs:
 
       - name: Upload Source Code to EC2
         run: |
-          scp space_invaders_source.tar.gz ubuntu@${{ needs.create-temp-ec2.outputs.public_dns }}:~
-          ssh ubuntu@${{ needs.create-temp-ec2.outputs.public_dns }} "tar -xzf space_invaders_source.tar.gz"
-          scp cli/run-smoke-tests.sh ubuntu@${{ needs.create-temp-ec2.outputs.public_dns }}:~/spaceInvaders-source/
+          scp -i vockey.pem space_invaders_source.tar.gz ubuntu@${{ needs.create-temp-ec2.outputs.public_dns }}:~
+          ssh -i vockey.pem ubuntu@${{ needs.create-temp-ec2.outputs.public_dns }} "tar -xzf space_invaders_source.tar.gz"
+          scp -i vockey.pem cli/run-smoke-tests.sh ubuntu@${{ needs.create-temp-ec2.outputs.public_dns }}:~/spaceInvaders-source/
 
       - name: Run smoke tests on EC2
         run: |
-          ssh ubuntu@${{ env.public_dns }} << 'EOF'
+          ssh -i vockey.pem ubuntu@${{ env.public_dns }} << 'EOF'
             cd ~/spaceInvaders-source
             chmod +x cli/run-smoke-tests.sh
             ./cli/run-smoke-tests.sh
