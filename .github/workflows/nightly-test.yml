@@ -99,6 +99,7 @@ jobs:
 
       - name: Add private Key to known hosts
         run: |
+          eval $(ssh-agent)
           ssh-add vockey.pem
 
       - name: Upload Source Code to EC2
