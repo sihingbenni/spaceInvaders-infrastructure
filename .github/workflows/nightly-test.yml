@@ -106,12 +106,13 @@ jobs:
         run: |
           scp -i vockey.pem space_invaders_source.tar.gz ubuntu@${{ needs.create-temp-ec2.outputs.public_dns }}:~
           ssh -i vockey.pem ubuntu@${{ needs.create-temp-ec2.outputs.public_dns }} "tar -xzf space_invaders_source.tar.gz"
-          scp -i vockey.pem cli/run-smoke-test.sh ubuntu@${{ needs.create-temp-ec2.outputs.public_dns }}:~/spaceInvaders-source/
+          ssh -i vockey.pem ubuntu@${{ needs.create-temp-ec2.outputs.public_dns }} "ls -la"
+          scp -i vockey.pem cli/run-smoke-test.sh ubuntu@${{ needs.create-temp-ec2.outputs.public_dns }}:~/space_invaders_source/
 
       - name: Run smoke tests on EC2
         run: |
           ssh -i vockey.pem ubuntu@${{ env.public_dns }} << 'EOF'
-            cd ~/spaceInvaders-source
+            cd ~/space_invaders_source
             chmod +x run-smoke-test.sh
             ./run-smoke-tests.sh
           EOF
