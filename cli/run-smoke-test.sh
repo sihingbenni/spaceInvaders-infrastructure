@@ -6,9 +6,18 @@ npm install
 # Start the application
 docker compose -f test.docker-compose.yml up -d
 
-# Wait until the container space_invaders is healthy
+# Wait until the container space_invaders is healthy, with a maximum of 10 attempts
+attempt_counter=0
+max_attempts=50
+
 while [ "$(docker inspect -f '{{.State.Health.Status}}' spaceinvaders-space_invaders-1)" != "healthy" ]; do
-  sleep 1
+  if [ ${attempt_counter} -eq ${max_attempts} ]; then
+    echo "Max attempts reached, container is not healthy."
+    exit 1
+  fi
+
+  attempt_counter=$((attempt_counter+1))
+  sleep 5
 done
 
 # Run tests
