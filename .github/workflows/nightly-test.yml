@@ -86,6 +86,11 @@ jobs:
         with:
           name: space_invaders_source
 
+      - name: Create SSH key
+        run: |
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > vockey.pem
+          chmod 600 vockey.pem
+
       - name: Upload Source Code to EC2
         run: |
           scp -i vockey.pem space_invaders_source.tar.gz ubuntu@${{ needs.create-temp-ec2.outputs.public_dns }}:~
