@@ -6,6 +6,18 @@ if [ "$#" -ne 2 ]; then
   exit 1
 fi
 
+# Function to trigger the shutdown EC2 workflow
+trigger_shutdown_ec2_workflow() {
+  local instance_id=$1
+  local github_token=$2
+
+  curl -X POST \
+    -H "Accept: application/vnd.github.v3+json" \
+    -H "Authorization: token $github_token" \
+    https://api.github.com/repos/sihingbenni/spaceInvaders-infrastructure/actions/workflows/shutdown-ec2.yml/dispatches \
+    -d "{\"ref\":\"main\", \"inputs\": {\"instance_id\": \"$instance_id\"}}"
+}
+
 INSTANCE_ID=$1
 GITHUB_TOKEN=$2
 
@@ -22,7 +34,11 @@ max_attempts=60
 while [ "$(docker inspect -f '{{.State.Health.Status}}' spaceinvaders-space_invaders-1)" != "healthy" ]; do
   if [ ${attempt_counter} -eq ${max_attempts} ]; then
     echo "Max attempts reached, container is not healthy."
+
+    # Trigger shutdown EC2 workflow
+    trigger_shutdown_ec2_workflow "$INSTANCE_ID" "$GITHUB_TOKEN"
     exit 1
+
   fi
 
   attempt_counter=$((attempt_counter+1))
@@ -40,21 +56,10 @@ TEST_EXIT_CODE=$?
 if [ $TEST_EXIT_CODE -eq 0 ]; then
   echo "Tests passed successfully."
 
-  # Trigger QA deployment workflow
-  curl -X POST \
-    -H "Accept: application/vnd.github.v3+json" \
-    -H "Authorization: token $GITHUB_TOKEN" \
-    https://api.github.com/repos/sihingbenni/spaceInvaders-infrastructure/actions/workflows/trigger-qa-deployment.yml/dispatches \
-    -d "{\"ref\":\"main\"}"
-
+  trigger_shutdown_ec2_workflow "$INSTANCE_ID" "$GITHUB_TOKEN"
+  exit 0
 else
   echo "Tests failed with exit code $TEST_EXIT_CODE."
+  trigger_shutdown_ec2_workflow "$INSTANCE_ID" "$GITHUB_TOKEN"
   exit $TEST_EXIT_CODE
 fi
-
-# Trigger shutdown EC2 workflow
-curl -X POST \
-  -H "Accept: application/vnd.github.v3+json" \
-  -H "Authorization: token $GITHUB_TOKEN" \
-  https://api.github.com/repos/sihingbenni/spaceInvaders-infrastructure/actions/workflows/shutdown-ec2.yml/dispatches \
-  -d "{\"ref\":\"main\", \"inputs\": {\"instance_id\": \"$INSTANCE_ID\"}}"
