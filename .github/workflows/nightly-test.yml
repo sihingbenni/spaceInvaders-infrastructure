@@ -112,8 +112,8 @@ jobs:
         run: |
           ssh -i vockey.pem ubuntu@${{ env.public_dns }} << 'EOF'
             cd ~/spaceInvaders-source
-            chmod +x cli/run-smoke-test.sh
-            ./cli/run-smoke-tests.sh
+            chmod +x run-smoke-test.sh
+            ./run-smoke-tests.sh
           EOF
 
       - name: Trigger build and deploy
