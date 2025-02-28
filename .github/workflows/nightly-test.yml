@@ -36,7 +36,7 @@ jobs:
       - name: Get Public DNS Name
         id: get-public-dns
         run: |
-          aws ec2 wait instance-running --instance-ids $INSTANCE_ID
+          aws ec2 wait instance-running --instance-ids ${{ steps.get-instance-id.outputs.instance_id }}
           PUBLIC_DNS=$(aws ec2 describe-instances \
           --instance-ids ${{ steps.get-instance-id.outputs.instance_id }} \
           --query 'Reservations[0].Instances[0].PublicDnsName' \
@@ -61,7 +61,7 @@ jobs:
 
       - name: Upload source code artifact
         id: upload-source-artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: space_invaders_source
           path: space_invaders_source.tar.gz
@@ -76,7 +76,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Download source code artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: space_invaders_source
 
@@ -122,4 +122,4 @@ jobs:
 
       - name: Delete Temp EC2
         run: |
-          aws ec2 terminate-instances --instance-ids ${{ needs.create-temp-ec2.outputs.instance_id }}
+          aws ec2 terminate-instances --instance-ids ${{ needs.create-temp-ec2.steps.get-instance-id.outputs.instance_id }}
