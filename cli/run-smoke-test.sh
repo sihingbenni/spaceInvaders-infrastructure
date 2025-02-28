@@ -18,6 +18,18 @@ trigger_shutdown_ec2_workflow() {
     -d "{\"ref\":\"main\", \"inputs\": {\"instance_id\": \"$instance_id\"}}"
 }
 
+# Function to trigger the QA deployment workflow
+trigger_qa_deployment() {
+  local github_token=$1
+
+  curl -X POST \
+    -H "Accept: application/vnd.github.v3+json" \
+    -H "Authorization: token $github_token" \
+    https://api.github.com/repos/sihingbenni/spaceInvaders-infrastructure/actions/workflows/trigger_qa_deployment.yml/dispatches \
+    -d "{\"ref\":\"main\"}"
+}
+
+
 INSTANCE_ID=$1
 GITHUB_TOKEN=$2
 
@@ -58,11 +70,12 @@ LOG_FILE="run-smoke-test.log"
   # Check if tests were successful
   if [ $TEST_EXIT_CODE -eq 0 ]; then
     echo "Tests passed successfully."
-    trigger_shutdown_ec2_workflow "$INSTANCE_ID" "$GITHUB_TOKEN"
-    exit 0
+    trigger_qa_deployment "$GITHUB_TOKEN"
   else
     echo "Tests failed with exit code $TEST_EXIT_CODE."
-    trigger_shutdown_ec2_workflow "$INSTANCE_ID" "$GITHUB_TOKEN"
-    exit $TEST_EXIT_CODE
+    # TODO send log file to somewhere
   fi
 } >> $LOG_FILE 2>&1
+
+
+trigger_shutdown_ec2_workflow "$INSTANCE_ID" "$GITHUB_TOKEN"
