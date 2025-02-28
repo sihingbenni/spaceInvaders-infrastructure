@@ -8,7 +8,7 @@ docker compose -f test.docker-compose.yml up -d
 
 # Wait until the container space_invaders is healthy, with a maximum of 10 attempts
 attempt_counter=0
-max_attempts=50
+max_attempts=60
 
 while [ "$(docker inspect -f '{{.State.Health.Status}}' spaceinvaders-space_invaders-1)" != "healthy" ]; do
   if [ ${attempt_counter} -eq ${max_attempts} ]; then
@@ -17,8 +17,11 @@ while [ "$(docker inspect -f '{{.State.Health.Status}}' spaceinvaders-space_inva
   fi
 
   attempt_counter=$((attempt_counter+1))
-  sleep 5
+  sleep 1
 done
+
+# create environment variable for the game url
+export GAME_URL="localhost:8080"
 
 # Run tests
 npm run test
