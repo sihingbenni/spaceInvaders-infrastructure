@@ -20,7 +20,7 @@ jobs:
           aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
 
       - name: Build Docker image
-        run: docker build -t spaceInvader .
+        run: docker build -t space_invader .
 
       - name: Generate Date String
         id: date
@@ -28,9 +28,9 @@ jobs:
 
       - name: Tag and push Docker image
         run: |
-          docker tag spaceInvader:latest ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:${{ github.run_id }}
-          docker tag soaceInvader:latest ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:nightly
-          docker tag spaceInvader:latest ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:${{ steps.date.outputs.date }}
+          docker tag space_invader:latest ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:${{ github.run_id }}
+          docker tag space_invader:latest ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:nightly
+          docker tag space_invader:latest ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:${{ steps.date.outputs.date }}
           docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:${{ github.run_id }}
 
   deploy:
@@ -56,17 +56,17 @@ jobs:
             export AWS_SESSION_TOKEN=${{ secrets.AWS_SESSION_TOKEN }}
             $(aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com)
             docker pull ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:${{ github.run_id }}
-            docker stop spaceInvader || true
-            docker container rm -f spaceInvader || true
-            docker run -d --name spaceInvader -p 80:8080 \
+            docker stop space_invader || true
+            docker container rm -f space_invader || true
+            docker run -d --name space_invader -p 80:8080 \
               -e TOKEN_KEY=${{ secrets.TOKEN_KEY}} \
               -e SECRET_KEY=${{ secrets.SECRET_KEY }} \
-              -e AWS_REGION=${{ secrets.AWS_REGION }} \
               -e DYNAMODB_TABLE_NAME=${{ vars.DYNAMODB_TABLE_NAME }} \
               -e RDS_ENDPOINT=${{ secrets.RDS_ENDPOINT }} \
               -e DATABASE_NAME=${{ secrets.DATABASE_NAME }} \
               -e DB_USER=${{ secrets.DB_USER }} \
               -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
+              -e AWS_REGION=${{ secrets.AWS_REGION }} \
               -e aws_access_key_id=${{ secrets.AWS_ACCESS_KEY_ID }} \
               -e aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY }} \
               -e aws_session_token=${{ secrets.AWS_SESSION_TOKEN }} \
