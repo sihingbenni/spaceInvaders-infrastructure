@@ -1,0 +1,113 @@
+name: Nightly Test
+
+on:
+  schedule:
+    - cron: "0 8 * * *" # Every night at midnight (Pacific Time)
+  workflow_dispatch: # Allow manual trigger of the workflow
+
+
+jobs:
+  create-temp-ec2:
+    runs-on: ubuntu-latest
+    environment: nightly
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ secrets.AWS-REGION }}
+
+      - name: Create temporary EC2 machine and get InstanceID
+        id: get-instance-id
+        run: |
+          INSTANCE_ID=$(aws ec2 run-instances \
+          --image-id ${{ vars.AMI_ID }} \
+          --count 1 \
+          --instance-type t2.micro \
+          --key-name vockey \
+          --security-groups laxSSH \
+          --query 'Instances[0].InstanceId' \
+          --output text)
+          echo "Instance ID: $INSTANCE_ID"
+          echo "instance_id=$INSTANCE_ID" >> $GITHUB_OUTPUT
+
+      - name: Get Public DNS Name
+        id: get-public-dns
+        run: |
+          aws ec2 wait instance-running --instance-ids $INSTANCE_ID
+          PUBLIC_DNS=$(aws ec2 describe-instances \
+          --instance-ids ${{ steps.get-instance-id.outputs.instance_id }} \
+          --query 'Reservations[0].Instances[0].PublicDnsName' \
+          --output text)
+          echo "Public DNS: $PUBLIC_DNS"
+          echo "public_dns=$PUBLIC_DNS" >> $GITHUB_ENV
+
+
+  bundle-source-code:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code from source repository
+        uses: actions/checkout@v3
+        with:
+          repository: "sihingbenni/spaceInvaders-source"
+
+      - name: Create tar from source code
+        id: create-source-tar
+        description: Creates a tar file from the source code
+        run: |
+          tar -czf space_invaders_source.tar.gz .
+          echo "source_artifact_name=space_invaders_source.tar.gz" >> $GITHUB_ENV
+
+      - name: Upload source code artifact
+        id: upload-source-artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: space_invaders_source
+          path: space_invaders_source.tar.gz
+
+  deploy-nightly-source-code:
+    runs-on: ubuntu-latest
+    needs:
+      - bundle-source-code
+      - create-temp-ec2
+    steps:
+      - name: Checkout code from this repository
+        uses: actions/checkout@v3
+
+      - name: Download source code artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: space_invaders_source
+
+      - name: Upload Source Code to EC2
+        run: |
+          scp -i vockey.pem space_invaders_source.tar.gz ubuntu@${{ needs.create-temp-ec2.outputs.public_dns }}:~
+          ssh -i vockey.pem ubuntu@${{ needs.create-temp-ec2.outputs.public_dns }} "tar -xzf space_invaders_source.tar.gz"
+          scp -i vockey.pem cli/run-smoke-tests.sh ubuntu@${{ needs.create-temp-ec2.outputs.public_dns }}:~/spaceInvaders-source/
+
+      - name: Run smoke tests on EC2
+        run: |
+          ssh -i vockey.pem ubuntu@${{ env.public_dns }} << 'EOF'
+            cd ~/spaceInvaders-source
+            chmod +x cli/run-smoke-tests.sh
+            ./cli/run-smoke-tests.sh
+          EOF
+
+      - name: Trigger build and deploy
+        if: success()
+        run: |
+          # Trigger the workflow
+          curl -X POST \
+          -H "Accept: application/vnd.github.v3+json" \
+          -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+          https://api.github.com/repos/$REPO/actions/workflows/$WORKFLOW/dispatches \
+          -d "{\"ref\":\"$BRANCH\"}"
+          echo "Workflow triggered successfully."
+
+      - name: Delete Temp EC2
+        if: always()
+        run: |
+          aws ec2 terminate-instances --instance-ids ${{ needs.create-temp-ec2.outputs.instance_id }}
+          echo "EC2 instance terminated successfully."
