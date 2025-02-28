@@ -1,6 +1,15 @@
 #!/bin/bash
 
+# Install dependencies
 npm install
+
+# Start the application
+docker compose up -d
+
+# Wait until the container space_invaders is healthy
+while [ "$(docker inspect -f '{{.State.Health.Status}}' spaceinvaders-space_invaders-1)" != "healthy" ]; do
+  sleep 1
+done
 
 # Run tests
 npm run test
