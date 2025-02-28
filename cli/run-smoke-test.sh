@@ -21,7 +21,7 @@ while [ "$(docker inspect -f '{{.State.Health.Status}}' spaceinvaders-space_inva
 done
 
 # create environment variable for the game url
-export GAME_URL="localhost:8080"
+export GAME_URL="http://localhost:8080"
 
 # Run tests
 npm run test
