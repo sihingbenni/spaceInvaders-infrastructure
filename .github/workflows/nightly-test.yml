@@ -105,7 +105,7 @@ jobs:
       - name: Upload Source Code to EC2
         run: |
           scp -i vockey.pem space_invaders_source.tar.gz ubuntu@${{ needs.create-temp-ec2.outputs.public_dns }}:~
-          ssh -i vockey.pem ubuntu@${{ needs.create-temp-ec2.outputs.public_dns }} "tar -xzf space_invaders_source.tar.gz"
+          ssh -i vockey.pem ubuntu@${{ needs.create-temp-ec2.outputs.public_dns }} "tar -xzf space_invaders_source.tar.gz -C space_invaders_source"
           ssh -i vockey.pem ubuntu@${{ needs.create-temp-ec2.outputs.public_dns }} "ls -la"
           scp -i vockey.pem cli/run-smoke-test.sh ubuntu@${{ needs.create-temp-ec2.outputs.public_dns }}:~/space_invaders_source/
 
