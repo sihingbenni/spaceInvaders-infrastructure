@@ -42,11 +42,10 @@ jobs:
           --query 'Reservations[0].Instances[0].PublicDnsName' \
           --output text)
           echo "Public DNS: $PUBLIC_DNS"
-          echo "public_dns=$PUBLIC_DNS" >> $GITHUB_ENV
+          echo "public_dns=$PUBLIC_DNS" >> $GITHUB_OUTPUT
     outputs:
       public_dns: ${{ steps.get-public-dns.outputs.public_dns }}
       instance_id: ${{ steps.get-instance-id.outputs.instance_id }}
-
 
   bundle-source-code:
     runs-on: ubuntu-latest
