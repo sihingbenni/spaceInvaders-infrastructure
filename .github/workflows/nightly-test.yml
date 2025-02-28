@@ -106,20 +106,20 @@ jobs:
           echo "Workflow triggered successfully."
 
   delete-temp-ec2:
-  runs-on: ubuntu-latest
-  needs:
-    - create-temp-ec2
-    - deploy-nightly-source-code
-  if: always()
-  steps:
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v4
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-        aws-region: ${{ secrets.AWS_REGION }}
+    runs-on: ubuntu-latest
+    needs:
+      - create-temp-ec2
+      - deploy-nightly-source-code
+    if: always()
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
-    - name: Delete Temp EC2
-      run: |
-        aws ec2 terminate-instances --instance-ids ${{ needs.create-temp-ec2.outputs.instance_id }}
+      - name: Delete Temp EC2
+        run: |
+          aws ec2 terminate-instances --instance-ids ${{ needs.create-temp-ec2.outputs.instance_id }}
