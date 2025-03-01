@@ -65,7 +65,7 @@ jobs:
             docker stop space_invader || true
             docker container rm -f space_invader || true
             echo "Starting new container"
-            docker run -d --name space_invader -p 80:8080 \
+            docker run -d --name space_invader -p 80:${{ vars.PORT }} \
               -e NODE_ENV=production \
               -e DB_URL=${{ secrets.DB_URL}} \
               -e PORT=${{ vars.PORT }} \
