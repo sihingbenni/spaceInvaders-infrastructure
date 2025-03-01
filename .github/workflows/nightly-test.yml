@@ -62,7 +62,6 @@ jobs:
         run: |
           sleep 5
           tar --ignore-failed-read --exclude='.git' --exclude='node_modules' -czf space_invaders_source.tar.gz .
-          echo "source_artifact_name=space_invaders_source.tar.gz" >> $GITHUB_ENV
 
       - name: Upload source code artifact
         id: upload-source-artifact
@@ -113,5 +112,5 @@ jobs:
       - name: Run smoke tests on EC2
         run: |
           ssh -i vockey.pem ubuntu@${{ needs.create-temp-ec2.outputs.public_dns }} "cd ~/space_invaders_source && chmod +x run-smoke-test.sh"
-          ssh -i vockey.pem ubuntu@${{ needs.create-temp-ec2.outputs.public_dns }} "screen -dmS smoke_test bash -c 'cd ~/space_invaders_source && ./run-smoke-test.sh ${{ needs.create-temp-ec2.outputs.instance_id }} ${{ secrets.GITHUB_TOKEN }}'"
+          ssh -i vockey.pem ubuntu@${{ needs.create-temp-ec2.outputs.public_dns }} "screen -dmS smoke_test bash -c 'cd ~/space_invaders_source && ./run-smoke-test.sh ${{ needs.create-temp-ec2.outputs.instance_id }} ${{ secrets.MY_GITHUB_TOKEN }}'"
           
