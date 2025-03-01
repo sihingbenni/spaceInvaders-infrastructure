@@ -113,4 +113,4 @@ jobs:
       - name: Run smoke tests on EC2
         run: |
           ssh -i vockey.pem ubuntu@${{ needs.create-temp-ec2.outputs.public_dns }} "cd ~/space_invaders_source && chmod +x run-smoke-test.sh"
-          ssh -i vockey.pem ubuntu@${{ needs.create-temp-ec2.outputs.public_dns }} "cd ~/space_invaders_source && screen -d -m ./run-smoke-test.sh ${{ needs.create-temp-ec2.outputs.instance_id }} ${{ secrets.GITHUB_TOKEN }}"
+          ssh -i vockey.pem ubuntu@${{ needs.create-temp-ec2.outputs.public_dns }} "cd ~/space_invaders_source && screen -d -m './run-smoke-test.sh ${{ needs.create-temp-ec2.outputs.instance_id }} ${{ secrets.GITHUB_TOKEN }}'"
