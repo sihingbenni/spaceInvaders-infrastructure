@@ -63,7 +63,6 @@ jobs:
             docker stop space_invader || true
             docker container rm -f space_invader || true
             echo "Setting environment variables"
-            echo ${{ secrets.DB_URL }} >> .env
             echo "Starting new container"
             docker run -d --name space_invader -p 80:8080 \
               -e NODE_ENV=production \
@@ -71,3 +70,5 @@ jobs:
               -e PORT=${{ vars.PORT }} \
               ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:${{ github.run_id }}
           EOF
+          echo "Printing DB_URL into .env file"
+          ssh -o StrictHostKeyChecking=no -i /tmp/ssh_key.pem ubuntu@${{ vars.EC2_PUBLIC_DNS }} "echo \"DB_URL=${{ secrets.DB_URL }}\" > .env"
