@@ -26,7 +26,7 @@ jobs:
 
       - name: Generate Date String
         id: date
-        run: echo "::set-output name=date::$(date +'%Y%m%d%H%M%S')"
+        run: echo "date==$(date +'%Y%m%d%H%M%S')" >> $GITHUB_OUTPUT
 
       - name: Tag and push Docker image
         run: |
@@ -61,16 +61,10 @@ jobs:
             docker stop space_invader || true
             docker container rm -f space_invader || true
             docker run -d --name space_invader -p 80:8080 \
-              -e TOKEN_KEY=${{ secrets.TOKEN_KEY}} \
-              -e SECRET_KEY=${{ secrets.SECRET_KEY }} \
-              -e DYNAMODB_TABLE_NAME=${{ vars.DYNAMODB_TABLE_NAME }} \
-              -e RDS_ENDPOINT=${{ secrets.RDS_ENDPOINT }} \
-              -e DATABASE_NAME=${{ secrets.DATABASE_NAME }} \
-              -e DB_USER=${{ secrets.DB_USER }} \
-              -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
-              -e AWS_REGION=${{ secrets.AWS_REGION }} \
-              -e aws_access_key_id=${{ secrets.AWS_ACCESS_KEY_ID }} \
-              -e aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY }} \
-              -e aws_session_token=${{ secrets.AWS_SESSION_TOKEN }} \
+              -e DB_NAME=${{ vars.DB_NAME}} \
+              -e DB_USER=${{ vars.DB_USER }} \
+              -e DB_PASS=${{ vars.DB_PASS }} \
+              -e DB_HOST=${{ vars.DB_HOST }} \
+              -e PORT=${{ vars.PORT }} \
               ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:${{ github.run_id }}
           EOF
