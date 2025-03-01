@@ -63,7 +63,7 @@ jobs:
             docker stop space_invader || true
             docker container rm -f space_invader || true
             echo "Setting environment variables"
-            export DB_URL=${{ secrets.DB_URL }}
+            echo ${{ secrets.DB_URL }} >> .env
             echo "Starting new container"
             docker run -d --name space_invader -p 80:8080 \
               -e NODE_ENV=production \
