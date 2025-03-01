@@ -57,10 +57,14 @@ jobs:
             export AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
             export AWS_SESSION_TOKEN=${{ secrets.AWS_SESSION_TOKEN }}
             $(aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com)
+            echo "Pulling image from ECR"
             docker pull ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:${{ github.run_id }}
+            echo "Stopping and removing existing container"
             docker stop space_invader || true
             docker container rm -f space_invader || true
+            echo "Setting environment variables"
             export DB_URL=${{ secrets.DB_URL }}
+            echo "Starting new container"
             docker run -d --name space_invader -p 80:8080 \
               -e NODE_ENV=production \
               -e DB_NAME=${{ secrets.DB_URL}} \
