@@ -10,7 +10,7 @@ fi
 trigger_shutdown_ec2_workflow() {
   local instance_id=$1
   local github_token=$2
-
+  echo "Triggering shutdown EC2 workflow for instance $instance_id" >> $LOG_FILE 2>&1
   curl -X POST \
     -H "Accept: application/vnd.github.v3+json" \
     -H "Authorization: token $github_token" \
@@ -22,10 +22,12 @@ trigger_shutdown_ec2_workflow() {
 trigger_qa_deployment() {
   local github_token=$1
 
+  echo "Triggering QA deployment workflow" >> $LOG_FILE 2>&1
+
   curl -X POST \
     -H "Accept: application/vnd.github.v3+json" \
     -H "Authorization: token $github_token" \
-    https://api.github.com/repos/sihingbenni/spaceInvaders-infrastructure/actions/workflows/trigger_qa_deployment.yml/dispatches \
+    https://api.github.com/repos/sihingbenni/spaceInvaders-infrastructure/actions/workflows/trigger-qa-deployment.yml/dispatches \
     -d "{\"ref\":\"main\"}"
 }
 
