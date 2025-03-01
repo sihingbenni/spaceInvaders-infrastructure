@@ -60,6 +60,7 @@ jobs:
             docker pull ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:${{ github.run_id }}
             docker stop space_invader || true
             docker container rm -f space_invader || true
+            export DB_URL=${{ secrets.DB_URL }}
             docker run -d --name space_invader -p 80:8080 \
               -e NODE_ENV=production \
               -e DB_NAME=${{ secrets.DB_URL}} \
