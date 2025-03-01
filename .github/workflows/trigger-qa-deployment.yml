@@ -61,10 +61,8 @@ jobs:
             docker stop space_invader || true
             docker container rm -f space_invader || true
             docker run -d --name space_invader -p 80:8080 \
-              -e DB_NAME=${{ vars.DB_NAME}} \
-              -e DB_USER=${{ vars.DB_USER }} \
-              -e DB_PASS=${{ vars.DB_PASS }} \
-              -e DB_HOST=${{ vars.DB_HOST }} \
+              -e NODE_ENV=production \
+              -e DB_NAME=${{ secrets.DB_URL}} \
               -e PORT=${{ vars.PORT }} \
               ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:${{ github.run_id }}
           EOF
