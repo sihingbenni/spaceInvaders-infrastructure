@@ -49,7 +49,7 @@ LOG_FILE="run-smoke-test.log"
   attempt_counter=0
   max_attempts=60
 
-  while [ "$(docker inspect -f '{{.State.Health.Status}}' spaceinvaders-space_invaders-1)" != "healthy" ]; do
+  while [ "$(docker inspect -f '{{.State.Health.Status}}' spaceinvaders-space_invaders_frontend-1)" != "healthy" ]; do
     if [ ${attempt_counter} -eq ${max_attempts} ]; then
       echo "Max attempts reached, container is not healthy."
 
