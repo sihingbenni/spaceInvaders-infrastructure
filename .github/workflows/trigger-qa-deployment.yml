@@ -33,7 +33,6 @@ jobs:
 
       - name: Tag and push Backend Docker image
         run: |
-          docker tag space_invader_backend:latest ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:${{ github.run_id }}-backend
           docker tag space_invader_backend:latest ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:nightly
           docker tag space_invader_backend:latest ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:${{ steps.date.outputs.date }}
           docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:${{ github.run_id }}-backend
@@ -68,14 +67,12 @@ jobs:
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-
       - name: Get Public DNS Name
         id: get-public-dns
         run: |
           aws ec2 wait instance-running --instance-ids ${{ vars.EC2_INSTANCE_ID }}
           PUBLIC_DNS=$(aws ec2 describe-instances \
           --instance-ids ${{ vars.EC2_INSTANCE_ID }} \
-          --query 'Reservations[0].Instances[0].PublicDnsName' \
           --output text)
           echo "Public DNS: $PUBLIC_DNS"
           echo "public_dns=$PUBLIC_DNS" >> $GITHUB_OUTPUT
@@ -89,10 +86,14 @@ jobs:
             $(aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com)
             echo "Pruning Docker system"
             docker system prune -af
+
+            echo "Creating custom bridge network"
+            docker network create space_invaders_network || true
+
             echo "Pulling image from ECR"
             docker pull ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:${{ github.run_id }}-frontend
             docker pull ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:${{ github.run_id }}-backend
-            
+
             echo "Stopping and removing existing container"
             docker stop space_invader_backend || true
             docker stop space_invader_frontend || true
@@ -100,7 +101,7 @@ jobs:
             docker container rm -f space_invader_frontend || true
 
             echo "Starting Backend"
-            docker run -d --name space_invader_backend -p 8080:${{ vars.BACKEND_PORT }} \
+            docker run -d --name space_invader_backend --network space_invaders_network -p 8080:${{ vars.BACKEND_PORT }} \
               -e NODE_ENV=production \
               -e DB_URL=${{ secrets.DB_URL}} \
               -e BACKEND_PORT=${{ vars.BACKEND_PORT }} \
@@ -108,14 +109,14 @@ jobs:
               -e BACKEND_URL=${{ vars.BACKEND_URL }} \
               -e FRONTEND_URL:=${{ vars.FRONTEND_URL }} \
               ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:${{ github.run_id }}-backend
-          
+
             echo "Starting Frontend"
-            docker run -d --name space_invader_frontend -p 3000:${{ vars.FRONTEND_PORT }} \
+            docker run -d --name space_invader_frontend --network space_invaders_network -p 3000:${{ vars.FRONTEND_PORT }} \
               -e NODE_ENV=production \
               -e BACKEND_PORT=${{ vars.BACKEND_PORT }} \
               -e BACKEND_HOST=${{ vars.BACKEND_HOST }} \
               -e BACKEND_URL=${{ vars.BACKEND_URL }} \
               -e FRONTEND_URL:=${{ vars.FRONTEND_URL }} \
               ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:${{ github.run_id }}-frontend
-          
+
           EOF
