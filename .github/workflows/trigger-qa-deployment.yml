@@ -22,10 +22,10 @@ jobs:
           aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
 
       - name: Build Backend Docker image
-        run: docker build -t space_invader_backend ./backend/Dockerfile
+        run: docker build -t space_invader_backend ./backend/
 
       - name: Build Frontend Docker image
-        run: docker build -t space_invader_frontend ./frontend/Dockerfile
+        run: docker build -t space_invader_frontend ./frontend/
 
       - name: Generate Date String
         id: date
