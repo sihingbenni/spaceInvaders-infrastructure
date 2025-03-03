@@ -103,8 +103,9 @@ jobs:
             docker run -d --name space_invader_backend -p ${{ vars.BACKEND_PORT }}:${{ vars.BACKEND_PORT }} \
               -e NODE_ENV=production \
               -e BACKEND_PORT=${{ vars.BACKEND_PORT }} \
-              -e BACKEND_HOST=${{ vars.BACKEND_PORT }} \
+              -e BACKEND_HOST=${{ vars.BACKEND_HOST }} \
               -e BACKEND_URL=${{ vars.BACKEND_URL }} \
+              -e FRONTEND_UR:=${{ vars.FRONTEND_URL }} \
               ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:${{ github.run_id }}-backend
           
             echo "Starting Frontend"
@@ -112,8 +113,9 @@ jobs:
               -e NODE_ENV=production \
               -e DB_URL=${{ secrets.DB_URL}} \
               -e BACKEND_PORT=${{ vars.BACKEND_PORT }} \
-              -e BACKEND_HOST=${{ vars.BACKEND_PORT }} \
+              -e BACKEND_HOST=${{ vars.BACKEND_HOST }} \
               -e BACKEND_URL=${{ vars.BACKEND_URL }} \
+              -e FRONTEND_UR:=${{ vars.FRONTEND_URL }} \
               ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:${{ github.run_id }}-frontend
           
           EOF
