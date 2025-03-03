@@ -16,3 +16,9 @@ jobs:
         run: |
           echo "${{ github.event.inputs.log }}" | base64 --decode > run-smoke-test.log
           cat run-smoke-test.log
+
+      - name: Upload log file as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: run-smoke-test-log
+          path: run-smoke-test.log
