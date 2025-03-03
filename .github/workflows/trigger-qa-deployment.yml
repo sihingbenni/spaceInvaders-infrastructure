@@ -60,9 +60,20 @@ jobs:
       - name: Set permissions for SSH key
         run: chmod 600 /tmp/ssh_key.pem
 
+      - name: Get Public DNS Name
+        id: get-public-dns
+        run: |
+          aws ec2 wait instance-running --instance-ids ${{ vars.EC2_INSTANCE_ID }}
+          PUBLIC_DNS=$(aws ec2 describe-instances \
+          --instance-ids ${{ vars.EC2_INSTANCE_ID }} \
+          --query 'Reservations[0].Instances[0].PublicDnsName' \
+          --output text)
+          echo "Public DNS: $PUBLIC_DNS"
+          echo "public_dns=$PUBLIC_DNS" >> $GITHUB_OUTPUT
+
       - name: Log in to Amazon ECR and deploy to EC2
         run: |
-          ssh -o StrictHostKeyChecking=no -i /tmp/ssh_key.pem ubuntu@${{ vars.EC2_PUBLIC_DNS }} << 'EOF'
+          ssh -o StrictHostKeyChecking=no -i /tmp/ssh_key.pem ubuntu@${{ steps.get-public-dns.outputs.public_dns }} << 'EOF'
             export AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
             export AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
             export AWS_SESSION_TOKEN=${{ secrets.AWS_SESSION_TOKEN }}
