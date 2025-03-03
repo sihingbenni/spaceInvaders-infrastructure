@@ -37,11 +37,12 @@ trigger_test_failed() {
 
   echo "Triggering test failed workflow" >> $LOG_FILE 2>&1
 
+  log_content=$(cat "$log_file" | base64 | tr -d '\n')
   curl -X POST \
     -H "Accept: application/vnd.github.v3+json" \
     -H "Authorization: token $github_token" \
     https://api.github.com/repos/sihingbenni/spaceInvaders-infrastructure/actions/workflows/trigger-test-failed.yml/dispatches \
-    -d "{\"ref\":\"main\", \"inputs\": {\"log\": \"$(cat "$log_file" | base64)\"}}"
+    -d "{\"ref\":\"main\", \"inputs\": {\"log\": \"$log_content\"}}"
 }
 
 INSTANCE_ID=$1
