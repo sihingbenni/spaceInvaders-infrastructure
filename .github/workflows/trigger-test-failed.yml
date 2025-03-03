@@ -1,0 +1,18 @@
+name: Trigger Test Failed
+
+on:
+  workflow_dispatch:
+    inputs:
+      log:
+        description: 'Base64 encoded log file'
+        required: true
+        type: string
+
+jobs:
+  log-error:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Decode and save log file
+        run: |
+          echo "${{ github.event.inputs.log }}" | base64 --decode > run-smoke-test.log
+          cat run-smoke-test.log

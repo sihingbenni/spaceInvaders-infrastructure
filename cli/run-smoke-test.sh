@@ -31,6 +31,18 @@ trigger_qa_deployment() {
     -d "{\"ref\":\"main\"}"
 }
 
+trigger_test_failed() {
+  local github_token=$1
+  local log_file=$2
+
+  echo "Triggering test failed workflow" >> $LOG_FILE 2>&1
+
+  curl -X POST \
+    -H "Accept: application/vnd.github.v3+json" \
+    -H "Authorization: token $github_token" \
+    https://api.github.com/repos/sihingbenni/spaceInvaders-infrastructure/actions/workflows/trigger-test-failed.yml/dispatches \
+    -d "{\"ref\":\"main\", \"inputs\": {\"log\": \"$(cat "$log_file" | base64)\"}}"
+}
 
 INSTANCE_ID=$1
 GITHUB_TOKEN=$2
@@ -75,9 +87,13 @@ LOG_FILE="run-smoke-test.log"
     trigger_qa_deployment "$GITHUB_TOKEN"
   else
     echo "Tests failed with exit code $TEST_EXIT_CODE."
-    # TODO send log file to somewhere
+    trigger_test_failed "$GITHUB_TOKEN" "$LOG_FILE"
   fi
 } >> $LOG_FILE 2>&1
 
+# if test failed send the contents of the log file to the test failed workflow
+if [ $TEST_EXIT_CODE -ne 0 ]; then
+  trigger_test_failed "$GITHUB_TOKEN" "$LOG_FILE"
+fi
 
 trigger_shutdown_ec2_workflow "$INSTANCE_ID" "$GITHUB_TOKEN"
