@@ -1,8 +1,8 @@
 name: Nightly Test
 
 on:
-  schedule:
-    - cron: "0 8 * * *" # Every night at midnight (Pacific Time)
+  # schedule:
+    # - cron: "0 8 * * *" # Every night at midnight (Pacific Time)
   workflow_dispatch: # Allow manual trigger of the workflow
 
 
